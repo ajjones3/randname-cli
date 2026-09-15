@@ -10,13 +10,15 @@ fn main() {
         Ok(config) => config,
         Err(message) => {
             eprintln!("error: {message}");
-            eprintln!("usage: randname [--count N] [--syllables N] [--seed N]");
+            eprintln!(
+                "usage: randname [--count N] [--syllables N] [--seed N] [--style common|elvish|dwarvish]"
+            );
             std::process::exit(1);
         }
     };
 
     let seed = config.seed.unwrap_or_else(default_seed);
-    let names = namegen::generate_batch(seed, config.count, config.syllables);
+    let names = namegen::generate_batch(seed, config.count, config.syllables, config.style);
 
     for name in names {
         println!("{name}");

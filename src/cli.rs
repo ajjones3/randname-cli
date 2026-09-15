@@ -1,23 +1,27 @@
 // Argument parsing kept separate from std::env so it can be tested
 // with plain string slices instead of real process arguments.
 
+use crate::namegen::Style;
+
 #[derive(Debug, PartialEq)]
 pub struct Config {
     pub count: usize,
     pub syllables: usize,
     pub seed: Option<u64>,
+    pub style: Style,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Config { count: 5, syllables: 2, seed: None }
+        Config { count: 5, syllables: 2, seed: None, style: Style::Common }
     }
 }
 
 /// Parses CLI flags into a Config. Accepts `--count`/`-c`,
-/// `--syllables`/`-s`, and `--seed`, each requiring a following
-/// value. Unknown flags or malformed values come back as an error
-/// instead of panicking, so main can decide how to report them.
+/// `--syllables`/`-s`, `--seed`, and `--style`, each requiring a
+/// following value. Unknown flags or malformed values come back as
+/// an error instead of panicking, so main can decide how to report
+/// them.
 pub fn parse_args(args: &[String]) -> Result<Config, String> {
     let mut config = Config::default();
     let mut i = 0;
@@ -28,6 +32,11 @@ pub fn parse_args(args: &[String]) -> Result<Config, String> {
             "--count" | "-c" => config.count = parse_value(args, &mut i, flag)?,
             "--syllables" | "-s" => config.syllables = parse_value(args, &mut i, flag)?,
             "--seed" => config.seed = Some(parse_value(args, &mut i, flag)?),
+            "--style" => {
+                i += 1;
+                let raw = args.get(i).ok_or_else(|| format!("{flag} requires a value"))?;
+                config.style = raw.parse::<Style>()?;
+            }
             other => return Err(format!("unknown flag: {other}")),
         }
         i += 1;
@@ -73,6 +82,17 @@ mod tests {
     fn parses_seed() {
         let config = parse_args(&args(&["--seed", "99"])).unwrap();
         assert_eq!(config.seed, Some(99));
+    }
+
+    #[test]
+    fn parses_style() {
+        let config = parse_args(&args(&["--style", "elvish"])).unwrap();
+        assert_eq!(config.style, Style::Elvish);
+    }
+
+    #[test]
+    fn rejects_unknown_style() {
+        assert!(parse_args(&args(&["--style", "orcish"])).is_err());
     }
 
     #[test]

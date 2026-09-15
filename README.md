@@ -37,6 +37,7 @@ Flags:
 --count N, -c N       how many names to print (default: 5)
 --syllables N, -s N   syllables per name (default: 2)
 --seed N               fix the seed for reproducible output
+--style STYLE          common, elvish, or dwarvish (default: common)
 ```
 
 Example, five three-syllable names with a fixed seed so the output is
@@ -44,6 +45,14 @@ the same on every run:
 
 ```
 $ randname --count 5 --syllables 3 --seed 12345
+```
+
+Each style draws from its own syllable tables, so the same seed
+produces a different-sounding name per style:
+
+```
+$ randname --count 3 --seed 7 --style elvish
+$ randname --count 3 --seed 7 --style dwarvish
 ```
 
 ## Design
